@@ -1,4 +1,16 @@
 /**
+ * Name of asset and current value in JPY.
+ * bought is value when bought.
+ *
+ * @interface Asset
+ */
+export interface Asset {
+  name: string;
+  value: number;
+  bought?: number;
+}
+
+/**
  * This is base class for all source class.
  *
  * @class SourceBase
@@ -20,6 +32,8 @@ export abstract class SourceBase<T> {
    * @memberof SourceBase
    */
   abstract fetch(): Promise<number>;
+
+  abstract fetchAll?(): Promise<Asset[]>;
 
   constructor(config: T) {
     this.config = config;

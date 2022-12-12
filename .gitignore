@@ -42,3 +42,7 @@ yarn.lock
 
 # compiled files
 *.js
+!.prettierrc.js
+
+# debug puppeteer
+debug_*

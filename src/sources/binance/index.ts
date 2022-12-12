@@ -1,4 +1,4 @@
-import { SourceBase } from "../base";
+import { SourceBase, Asset } from "../base";
 import Binance from "node-binance-api";
 
 const CurrencyConverter = require("currency-converter-lt");
@@ -51,5 +51,36 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
     }
 
     return await currencyConverter.convert(walletBalanceUSD);
+  }
+
+  async fetchAll(): Promise<Asset[]> {
+    const balances = await this.binance.balance();
+    const ticker = await this.binance.prices();
+    const currencyConverter = new CurrencyConverter({ from: "USD", to: "JPY" });
+    const UsdJpyRate: number = await currencyConverter.convert(1.0);
+    const assetsHash: { [index: string]: Asset } = {};
+
+    for (let currency in balances) {
+      const balance = balances[currency];
+      const available = parseFloat(balance.available);
+      if (available === 0.0) {
+        continue;
+      }
+
+      // TODO: not sure what is it
+      if (currency === "ETHW") continue;
+
+      currency = currency.replace(/^LD/, "");
+
+      let asset = assetsHash[currency] || { name: currency, value: 0.0 };
+      if (currency.match(/USD/)) {
+        asset.value = available * UsdJpyRate + asset.value;
+      } else {
+        asset.value = parseFloat(ticker[`${currency}BUSD`]) * available * UsdJpyRate + asset.value;
+      }
+      assetsHash[currency] = asset;
+    }
+
+    return Object.values(assetsHash);
   }
 }
