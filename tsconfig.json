@@ -6,13 +6,6 @@
     "skipLibCheck": true,
     "outDir": "dist"
   },
-  "lib": [
-    "dom",
-    "es2017"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "example/**/*.ts",
-    "test/**/*.ts"
-  ]
+  "lib": ["dom", "es2017"],
+  "include": ["src/**/*.ts", "example/**/*.ts", "test/**/*.ts"]
 }
