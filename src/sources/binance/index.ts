@@ -1,7 +1,7 @@
-import { SourceBase, Asset } from "../base";
-import Binance from "node-binance-api";
+import {SourceBase, Asset} from '../base';
+import Binance from 'node-binance-api';
 
-const CurrencyConverter = require("currency-converter-lt");
+const CurrencyConverter = require('currency-converter-lt');
 
 /**
  * Config for binance source
@@ -28,7 +28,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
   async fetch(): Promise<number> {
     const balances = await this.binance.balance();
     const ticker = await this.binance.prices();
-    const currencyConverter = new CurrencyConverter({ from: "USD", to: "JPY" });
+    const currencyConverter = new CurrencyConverter({from: 'USD', to: 'JPY'});
     let walletBalanceUSD = 0;
 
     for (let currency in balances) {
@@ -39,9 +39,9 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       }
 
       // TODO: not sure what is it
-      if (currency === "ETHW") continue;
+      if (currency === 'ETHW') continue;
 
-      currency = currency.replace(/^LD/, "");
+      currency = currency.replace(/^LD/, '');
 
       if (currency.match(/USD/)) {
         walletBalanceUSD += available;
@@ -56,9 +56,9 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
   async fetchAll(): Promise<Asset[]> {
     const balances = await this.binance.balance();
     const ticker = await this.binance.prices();
-    const currencyConverter = new CurrencyConverter({ from: "USD", to: "JPY" });
+    const currencyConverter = new CurrencyConverter({from: 'USD', to: 'JPY'});
     const UsdJpyRate: number = await currencyConverter.convert(1.0);
-    const assetsHash: { [index: string]: Asset } = {};
+    const assetsHash: {[index: string]: Asset} = {};
 
     for (let currency in balances) {
       const balance = balances[currency];
@@ -68,15 +68,17 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       }
 
       // TODO: not sure what is it
-      if (currency === "ETHW") continue;
+      if (currency === 'ETHW') continue;
 
-      currency = currency.replace(/^LD/, "");
+      currency = currency.replace(/^LD/, '');
 
-      let asset = assetsHash[currency] || { name: currency, value: 0.0 };
+      const asset = assetsHash[currency] || {name: currency, value: 0.0};
       if (currency.match(/USD/)) {
         asset.value = available * UsdJpyRate + asset.value;
       } else {
-        asset.value = parseFloat(ticker[`${currency}BUSD`]) * available * UsdJpyRate + asset.value;
+        asset.value =
+          parseFloat(ticker[`${currency}BUSD`]) * available * UsdJpyRate +
+          asset.value;
       }
       assetsHash[currency] = asset;
     }

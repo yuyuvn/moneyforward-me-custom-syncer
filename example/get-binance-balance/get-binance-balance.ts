@@ -1,4 +1,4 @@
-import { BinanceSource } from "../../src/sources/binance";
+import {BinanceSource} from '../../src/sources/binance';
 
 (async () => {
   const client = new BinanceSource({});

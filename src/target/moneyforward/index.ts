@@ -1,6 +1,6 @@
-import fs from "fs";
-import { Asset } from "../../sources/base";
-import puppeteer, { PuppeteerLaunchOptions, Page, Browser } from 'puppeteer';
+import fs from 'fs';
+import {Asset} from '../../sources/base';
+import puppeteer, {PuppeteerLaunchOptions, Page, Browser} from 'puppeteer';
 
 let debugCount = 0;
 
@@ -46,40 +46,45 @@ export class MoneyforwardCashAccount {
     const page = this.page!;
 
     try {
-      await page.goto("https://moneyforward.com/accounts");
+      await page.goto('https://moneyforward.com/accounts');
       await (
         await page.waitForXPath(
           `//section[@class='manual_accounts']//a[contains(., '${account}')]`
         )
       )?.click();
 
-      for (let asset of assets) {
-        await page.waitForXPath(
-          "//a[contains(., '手入力で資産を追加')]", {
+      for (const asset of assets) {
+        await page.waitForXPath("//a[contains(., '手入力で資産を追加')]", {
           visible: true,
-        })
-        const [row] = await page.$x(`//table[@id="TABLE_1"]//tr[contains(., "${asset.name}")]`);
+        });
+        const [row] = await page.$x(
+          `//table[@id="TABLE_1"]//tr[contains(., "${asset.name}")]`
+        );
         if (row) {
           await (await row.waitForSelector('.btn-asset-action'))?.click();
         } else {
           await (
-            await page.waitForXPath(
-              "//a[contains(., '手入力で資産を追加')]", {
+            await page.waitForXPath("//a[contains(., '手入力で資産を追加')]", {
               visible: true,
             })
           )?.click();
-          await page.select('#modal_asset_new #user_asset_det_asset_subclass_id', '66'); // 暗号資産
+          await page.select(
+            '#modal_asset_new #user_asset_det_asset_subclass_id',
+            '66'
+          ); // 暗号資産
           await page.type('#modal_asset_new #user_asset_det_name', asset.name);
         }
-        await (await page.waitForSelector(
-          "#user_asset_det_value", {
-          visible: true,
-        }))?.type(Math.round(asset.value).toString());
-        if (asset.bought) {
-          await (await page.waitForSelector(
-            "#user_asset_det_entried_price", {
+        await (
+          await page.waitForSelector('#user_asset_det_value', {
             visible: true,
-          }))?.type(Math.round(asset.bought).toString());
+          })
+        )?.type(Math.round(asset.value).toString());
+        if (asset.bought) {
+          await (
+            await page.waitForSelector('#user_asset_det_entried_price', {
+              visible: true,
+            })
+          )?.type(Math.round(asset.bought).toString());
         }
         await (
           await page.waitForSelector('input[value="この内容で登録する"]', {
@@ -117,20 +122,20 @@ export class MoneyforwardCashAccount {
       slowMo: 100,
       executablePath: process.env.CHRONIUM_BINARY_PATH,
       args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--no-first-run",
-        "--no-zygote",
-        "--disable-gpu",
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
       ],
       ...this.config.puppeteerOptions,
     };
     this.browser = await puppeteer.launch(puppeteerOptions);
     this.page = await this.browser.newPage();
     await this.page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0"
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'
     );
     this.page.on('dialog', async (dialog: any) => {
       await dialog.accept();
@@ -148,33 +153,33 @@ export class MoneyforwardCashAccount {
    */
   private async login(page: Page) {
     try {
-      await page.goto("https://moneyforward.com/sign_in");
+      await page.goto('https://moneyforward.com/sign_in');
       await (
-        await page.waitForSelector("a.ssoLink", {
+        await page.waitForSelector('a.ssoLink', {
           visible: true,
         })
       )?.click();
       await (
-        await page.waitForSelector("input.inputItem", {
+        await page.waitForSelector('input.inputItem', {
           visible: true,
         })
       )?.type(this.config.email!);
       await (
-        await page.waitForSelector("input.submitBtn", {
+        await page.waitForSelector('input.submitBtn', {
           visible: true,
         })
       )?.click();
       await (
-        await page.waitForSelector("input.inputItem", {
+        await page.waitForSelector('input.inputItem', {
           visible: true,
         })
       )?.type(this.config.password!);
       await (
-        await page.waitForSelector("input.submitBtn", {
+        await page.waitForSelector('input.submitBtn', {
           visible: true,
         })
       )?.click();
-      await page.waitForSelector("i.mf-icon-account", {
+      await page.waitForSelector('i.mf-icon-account', {
         visible: true,
       });
     } catch (error) {
@@ -191,7 +196,7 @@ export class MoneyforwardCashAccount {
    * @memberof MoneyforwardCashAccount
    */
   private async wait(miliseconds: number) {
-    await new Promise((r) => setTimeout(r, miliseconds));
+    await new Promise(r => setTimeout(r, miliseconds));
   }
 
   /**
@@ -206,22 +211,22 @@ export class MoneyforwardCashAccount {
     if (!this.config.debug) return;
 
     if (!error) {
-      const stack = new Error().stack?.split("\n")[2];
-      console.debug("Debug:", stack);
+      const stack = new Error().stack?.split('\n')[2];
+      console.debug('Debug:', stack);
     }
-    console.log("Current url:", this.page?.url());
+    console.log('Current url:', this.page?.url());
     const currentFolder = process.cwd();
     const html = await this.page?.content();
     fs.writeFileSync(
       `${currentFolder}/debug_${debugCount}.html`,
-      html || "null"
+      html || 'null'
     );
     await this.page!.screenshot({
       path: `${currentFolder}/debug_${debugCount}.png`,
       fullPage: true,
     });
     console.debug(
-      "Screenshot saved at",
+      'Screenshot saved at',
       `${currentFolder}/debug_${debugCount}.png`
     );
     debugCount += 1;
