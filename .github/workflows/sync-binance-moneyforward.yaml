@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
+      - run: npm install
       - name: sync
         env:
           BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
