@@ -21,6 +21,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
     this.binance = new Binance().options({
       APIKEY: config.apiKey || process.env.BINANCE_API_KEY,
       APISECRET: config.secretKey || process.env.BINANCE_SECRET_KEY,
+      useServerTime: true,
       family: 0,
     });
   }
