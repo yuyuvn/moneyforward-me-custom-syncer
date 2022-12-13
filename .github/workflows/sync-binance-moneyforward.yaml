@@ -22,10 +22,10 @@ jobs:
       - run: npm install
       - name: sync
         env:
-          BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
-          BINANCE_SECRET_KEY: ${{ secrets.BINANCE_SECRET_KEY }}
-          MONEYFORWARD_PASSWORD: ${{ secrets.MONEYFORWARD_PASSWORD }}
-          MONEYFORWARD_USER: ${{ secrets.MONEYFORWARD_USER }}
+          BINANCE_API_KEY: '${{ secrets.BINANCE_API_KEY }}'
+          BINANCE_SECRET_KEY: '${{ secrets.BINANCE_SECRET_KEY }}'
+          MONEYFORWARD_PASSWORD: '${{ secrets.MONEYFORWARD_PASSWORD }}'
+          MONEYFORWARD_USER: '${{ secrets.MONEYFORWARD_USER }}'
         run: |
           npm run compile
           node dist/example/set-moneyforward-balance/set-moneyforward-balance.js
