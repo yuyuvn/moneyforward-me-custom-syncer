@@ -1,6 +1,11 @@
 import fs from 'fs';
 import {Asset} from '../../sources/base';
-import puppeteer, {PuppeteerLaunchOptions, Page, Browser} from 'puppeteer';
+import puppeteer, {
+  PuppeteerLaunchOptions,
+  Page,
+  Browser,
+  ElementHandle,
+} from 'puppeteer';
 
 let debugCount = 0;
 
@@ -48,9 +53,9 @@ export class MoneyforwardCashAccount {
     try {
       await page.goto('https://moneyforward.com/accounts');
       await (
-        await page.waitForXPath(
+        (await page.waitForXPath(
           `//section[@class='manual_accounts']//a[contains(., '${account}')]`
-        )
+        )) as ElementHandle<Element>
       )?.click();
 
       for (const asset of assets) {
@@ -64,32 +69,44 @@ export class MoneyforwardCashAccount {
           await (await row.waitForSelector('.btn-asset-action'))?.click();
         } else {
           await (
-            await page.waitForXPath("//a[contains(., '手入力で資産を追加')]", {
+            (await page.waitForXPath("//a[contains(., '手入力で資産を追加')]", {
               visible: true,
-            })
+            })) as ElementHandle<Element>
           )?.click();
           await page.select(
-            '#modal_asset_new #user_asset_det_asset_subclass_id',
+            'div.modal.in #user_asset_det_asset_subclass_id',
             '66'
           ); // 暗号資産
-          await page.type('#modal_asset_new #user_asset_det_name', asset.name);
+          await page.type('div.modal.in #user_asset_det_name', asset.name);
         }
+        await page.waitForSelector('div.modal.in #user_asset_det_value', {
+          visible: true,
+        });
+        await page.evaluate(selector => {
+          (document.querySelector(selector) as HTMLInputElement).value = '';
+        }, 'div.modal.in input[name="user_asset_det[value]"]');
         await (
-          await page.waitForSelector('#user_asset_det_value', {
+          await page.waitForSelector('div.modal.in #user_asset_det_value', {
             visible: true,
           })
         )?.type(Math.round(asset.value).toString());
         if (asset.bought) {
           await (
-            await page.waitForSelector('#user_asset_det_entried_price', {
-              visible: true,
-            })
+            await page.waitForSelector(
+              'div.modal.in #user_asset_det_entried_price',
+              {
+                visible: true,
+              }
+            )
           )?.type(Math.round(asset.bought).toString());
         }
         await (
-          await page.waitForSelector('input[value="この内容で登録する"]', {
-            visible: true,
-          })
+          await page.waitForSelector(
+            'div.modal.in input[value="この内容で登録する"]',
+            {
+              visible: true,
+            }
+          )
         )?.click();
       }
     } catch (error) {
