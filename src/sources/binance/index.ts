@@ -22,7 +22,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       APIKEY: config.apiKey || process.env.BINANCE_API_KEY,
       APISECRET: config.secretKey || process.env.BINANCE_SECRET_KEY,
       useServerTime: true,
-      family: 0,
+      family: 4,
     });
   }
 
@@ -55,33 +55,38 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
   }
 
   async fetchAll(): Promise<Asset[]> {
-    const balances = await this.binance.balance();
-    const ticker = await this.binance.prices();
-    const currencyConverter = new CurrencyConverter({from: 'USD', to: 'JPY'});
-    const UsdJpyRate: number = await currencyConverter.convert(1.0);
     const assetsHash: {[index: string]: Asset} = {};
+    try {
+      const balances = await this.binance.balance();
+      const ticker = await this.binance.prices();
+      const currencyConverter = new CurrencyConverter({from: 'USD', to: 'JPY'});
+      const UsdJpyRate: number = await currencyConverter.convert(1.0);
 
-    for (let currency in balances) {
-      const balance = balances[currency];
-      const available = parseFloat(balance.available);
-      if (available === 0.0) {
-        continue;
+      for (let currency in balances) {
+        const balance = balances[currency];
+        const available = parseFloat(balance.available);
+        if (available === 0.0) {
+          continue;
+        }
+
+        // TODO: not sure what is it
+        if (currency === 'ETHW') continue;
+
+        currency = currency.replace(/^LD/, '');
+
+        const asset = assetsHash[currency] || {name: currency, value: 0.0};
+        if (currency.match(/USD/)) {
+          asset.value = available * UsdJpyRate + asset.value;
+        } else {
+          asset.value =
+            parseFloat(ticker[`${currency}BUSD`]) * available * UsdJpyRate +
+            asset.value;
+        }
+        assetsHash[currency] = asset;
       }
-
-      // TODO: not sure what is it
-      if (currency === 'ETHW') continue;
-
-      currency = currency.replace(/^LD/, '');
-
-      const asset = assetsHash[currency] || {name: currency, value: 0.0};
-      if (currency.match(/USD/)) {
-        asset.value = available * UsdJpyRate + asset.value;
-      } else {
-        asset.value =
-          parseFloat(ticker[`${currency}BUSD`]) * available * UsdJpyRate +
-          asset.value;
-      }
-      assetsHash[currency] = asset;
+    } catch (err) {
+      console.error(err);
+      throw err;
     }
 
     return Object.values(assetsHash);
