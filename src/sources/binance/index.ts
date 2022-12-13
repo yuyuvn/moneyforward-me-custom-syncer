@@ -22,7 +22,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       APIKEY: config.apiKey || process.env.BINANCE_API_KEY,
       APISECRET: config.secretKey || process.env.BINANCE_SECRET_KEY,
       useServerTime: true,
-      family: 0,
+      family: 4,
     });
   }
 
