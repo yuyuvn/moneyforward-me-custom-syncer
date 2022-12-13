@@ -1,0 +1,30 @@
+name: Sync Binance to Moneyforward
+
+on:
+  schedule:
+    - cron: '0 13,21 * * *' # 6:00 AM and 10:00 PM JST
+  workflow_dispatch:
+
+concurrency:
+  group: sync-binance-moneyforward-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+          with:
+            node-version: 18
+            cache: 'npm'
+      - name: sync
+        env:
+          BINANCE_API_KEY: ${{ secrets.BINANCE_API_KEY }}
+          BINANCE_SECRET_KEY: ${{ secrets.BINANCE_SECRET_KEY }}
+          MONEYFORWARD_PASSWORD: ${{ secrets.MONEYFORWARD_PASSWORD }}
+          MONEYFORWARD_USER: ${{ secrets.MONEYFORWARD_USER }}
+        run: |
+          npm run compile
+          node dist/example/set-moneyforward-balance/set-moneyforward-balance.js
