@@ -1,8 +1,8 @@
 name: Sync Binance to Moneyforward
 
 on:
-  # schedule:
-  #   - cron: '0 13,21 * * *' # 6:00 AM and 10:00 PM JST
+  schedule:
+    - cron: '0 13,21 * * *' # 6:00 AM and 10:00 PM JST
   workflow_dispatch:
 
 concurrency:
@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
@@ -20,12 +20,14 @@ jobs:
           node-version: 18
           cache: 'npm'
       - run: npm install
+      # - run: sudo apt install -y chromium-browser chromium-codecs-ffmpeg # manually run
       - name: sync
         env:
           BINANCE_API_KEY: '${{ secrets.BINANCE_API_KEY }}'
           BINANCE_SECRET_KEY: '${{ secrets.BINANCE_SECRET_KEY }}'
           MONEYFORWARD_PASSWORD: '${{ secrets.MONEYFORWARD_PASSWORD }}'
           MONEYFORWARD_USER: '${{ secrets.MONEYFORWARD_USER }}'
+          CHRONIUM_BINARY_PATH: '/usr/bin/chromium-browser'
         run: |
           npm run compile
           node dist/example/set-moneyforward-balance/set-moneyforward-balance.js
