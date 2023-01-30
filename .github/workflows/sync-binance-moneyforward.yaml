@@ -19,7 +19,9 @@ jobs:
         with:
           node-version: 18
           cache: 'npm'
-      - run: npm install
+      - env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+        run: npm install
       # - run: sudo apt install -y chromium-browser chromium-codecs-ffmpeg # manually run
       - name: sync
         env:
