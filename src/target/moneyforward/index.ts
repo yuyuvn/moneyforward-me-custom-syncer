@@ -196,7 +196,7 @@ export class MoneyforwardCashAccount {
           visible: true,
         })
       )?.click();
-      await page.waitForSelector('i.mf-icon-account', {
+      await page.waitForSelector('.right-nav', {
         visible: true,
       });
     } catch (error) {
