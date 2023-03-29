@@ -29,7 +29,6 @@ jobs:
           BINANCE_SECRET_KEY: '${{ secrets.BINANCE_SECRET_KEY }}'
           MONEYFORWARD_PASSWORD: '${{ secrets.MONEYFORWARD_PASSWORD }}'
           MONEYFORWARD_USER: '${{ secrets.MONEYFORWARD_USER }}'
-          CHRONIUM_BINARY_PATH: '/usr/bin/chromium-browser'
         run: |
           npm run compile
           node dist/example/set-moneyforward-balance/set-moneyforward-balance.js
