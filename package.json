@@ -15,7 +15,7 @@
     "posttest": "npm run lint"
   },
   "dependencies": {
-    "currency-converter-lt": "^2.0.0-beta.0",
+    "currency-converter-lt": "^2.0.0",
     "node-binance-api": "^0.13.1",
     "puppeteer": "^19.8.0"
   }
