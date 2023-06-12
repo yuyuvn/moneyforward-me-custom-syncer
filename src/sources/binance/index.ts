@@ -32,14 +32,16 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
     const currencyConverter = new CurrencyConverter({from: 'USD', to: 'JPY'});
     let walletBalanceUSD = 0;
 
+    console.log(JSON.stringify(balances));
     for (let currency in balances) {
       const balance = balances[currency];
-      const available = parseFloat(balance.available);
+      const available =
+        parseFloat(balance.available) + parseFloat(balance.onOrder);
       if (available === 0.0) {
         continue;
       }
 
-      // TODO: not sure what is it
+      // it's worthless
       if (currency === 'ETHW') continue;
 
       currency = currency.replace(/^LD/, '');
@@ -64,12 +66,13 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
 
       for (let currency in balances) {
         const balance = balances[currency];
-        const available = parseFloat(balance.available);
+        const available =
+          parseFloat(balance.available) + parseFloat(balance.onOrder);
         if (available === 0.0) {
           continue;
         }
 
-        // TODO: not sure what is it
+        // it's worthless
         if (currency === 'ETHW') continue;
 
         currency = currency.replace(/^LD/, '');
