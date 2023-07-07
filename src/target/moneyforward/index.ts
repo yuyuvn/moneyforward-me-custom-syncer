@@ -177,22 +177,22 @@ export class MoneyforwardCashAccount {
         })
       )?.click();
       await (
-        await page.waitForSelector('input.inputItem', {
+        await page.waitForSelector('[id="mfid_user[email]"]', {
           visible: true,
         })
       )?.type(this.config.email!);
       await (
-        await page.waitForSelector('input.submitBtn', {
+        await page.waitForSelector('#submitto', {
           visible: true,
         })
       )?.click();
       await (
-        await page.waitForSelector('input.inputItem', {
+        await page.waitForSelector('[id="mfid_user[password]"]', {
           visible: true,
         })
       )?.type(this.config.password!);
       await (
-        await page.waitForSelector('input.submitBtn', {
+        await page.waitForSelector('#submitto', {
           visible: true,
         })
       )?.click();
