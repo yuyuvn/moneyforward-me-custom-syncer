@@ -170,9 +170,9 @@ export class MoneyforwardCashAccount {
    */
   private async login(page: Page) {
     try {
-      await page.goto('https://moneyforward.com/sign_in');
+      await page.goto('https://moneyforward.com/login');
       await (
-        await page.waitForSelector('a.ssoLink', {
+        await page.waitForSelector('a.link-btn-reg', {
           visible: true,
         })
       )?.click();
