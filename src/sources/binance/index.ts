@@ -132,7 +132,9 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
         currency = currency.replace(/^LD/, '');
 
         const asset = assetsHash[currency] || {name: currency, value: 0.0};
-        if (currency.match(/USD/)) {
+        if (currency.match(/JPY/)) {
+          asset.value = available + asset.value;
+        } else if (currency.match(/USD/)) {
           asset.value = available * UsdJpyRate + asset.value;
         } else {
           asset.value =
@@ -148,7 +150,9 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
         if (row.status == 'FAILED' || row.type != 'NORMAL') {
           continue;
         }
-        if (currency.match(/USD/)) {
+        if (currency.match(/JPY/)) {
+          asset.value = available + asset.value;
+        } else if (currency.match(/USD/)) {
           asset.value = available * UsdJpyRate + asset.value;
         } else {
           if (currency == 'SOL') {
@@ -172,7 +176,9 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
         if (row.status == 'FAILED' || row.type != 'NORMAL') {
           continue;
         }
-        if (currency.match(/USD/)) {
+        if (currency.match(/JPY/)) {
+          asset.value = available + asset.value;
+        } else if (currency.match(/USD/)) {
           asset.value = available * UsdJpyRate + asset.value;
         } else {
           asset.value =
