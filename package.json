@@ -3,7 +3,7 @@
     "@types/node": "^20.10.7",
     "gts": "^5.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.3"
   },
   "scripts": {
     "lint": "gts lint",
