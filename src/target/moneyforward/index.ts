@@ -45,7 +45,7 @@ export class MoneyforwardCashAccount {
    * @param {Asset[]} assets
    * @memberof MoneyforwardCashAccount
    */
-  public async updateBalance(account: string, assets: Asset[]) {
+  public async updateCryptoBalance(account: string, assets: Asset[]) {
     if (!this.initiated) await this.initiate();
 
     const page = this.page!;
@@ -109,6 +109,51 @@ export class MoneyforwardCashAccount {
           )
         )?.click();
       }
+    } catch (error) {
+      await this.debug(error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update digital pay balance for a manual account
+   *
+   * @param {string} account
+   * @param {numer} balance
+   * @memberof MoneyforwardCashAccount
+   */
+  public async updatePayBalance(account: string, balance: number) {
+    if (!this.initiated) await this.initiate();
+
+    const page = this.page!;
+
+    try {
+      await page.goto('https://moneyforward.com/accounts');
+      await (
+        (await page.waitForXPath(
+          `//section[@class='manual_accounts']//a[contains(., '${account}')]`
+        )) as ElementHandle<Element>
+      )?.click();
+
+      await page.waitForXPath("//h1[contains(., '残高推移')]", {
+        visible: true,
+      });
+
+      await (await page.waitForSelector('.heading-small > .btn-success.btn'))?.click();
+
+      await (
+        await page.waitForSelector('#rollover_info_value', {
+          visible: true,
+        })
+      )?.type(balance.toString());
+      await (
+        await page.waitForSelector(
+          '.controls > .btn-success.btn',
+          {
+            visible: true,
+          }
+        )
+      )?.click();
     } catch (error) {
       await this.debug(error as Error);
       throw error;
