@@ -53,23 +53,23 @@ export class MoneyforwardCashAccount {
     try {
       await page.goto('https://moneyforward.com/accounts');
       await (
-        (await page.waitForXPath(
-          `//section[@class='manual_accounts']//a[contains(., '${account}')]`
+        (await page.waitForSelector(
+          `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
         )) as ElementHandle<Element>
       )?.click();
 
       for (const asset of assets) {
-        await page.waitForXPath("//a[contains(., '手入力で資産を追加')]", {
+        await page.waitForSelector("xpath/.//a[contains(., '手入力で資産を追加')]", {
           visible: true,
         });
-        const [row] = await page.$x(
-          `//table[@id="TABLE_1"]//tr[contains(., "${asset.name}")]`
+        const [row] = await page.$$(
+          `xpath/.//table[@id="TABLE_1"]//tr[contains(., "${asset.name}")]`
         );
         if (row) {
           await (await row.waitForSelector('.btn-asset-action'))?.click();
         } else {
           await (
-            (await page.waitForXPath("//a[contains(., '手入力で資産を追加')]", {
+            (await page.waitForSelector("xpath/.//a[contains(., '手入力で資産を追加')]", {
               visible: true,
             })) as ElementHandle<Element>
           )?.click();
@@ -130,12 +130,12 @@ export class MoneyforwardCashAccount {
     try {
       await page.goto('https://moneyforward.com/accounts');
       await (
-        (await page.waitForXPath(
-          `//section[@class='manual_accounts']//a[contains(., '${account}')]`
+        (await page.waitForSelector(
+          `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
         )) as ElementHandle<Element>
       )?.click();
 
-      await page.waitForXPath("//h1[contains(., '残高推移')]", {
+      await page.waitForSelector("xpath/.//h1[contains(., '残高推移')]", {
         visible: true,
       });
 
