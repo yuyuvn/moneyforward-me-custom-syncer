@@ -17,6 +17,6 @@
   "dependencies": {
     "currency-converter-lt": "^2.0.1",
     "node-binance-api": "^0.13.1",
-    "puppeteer": "^22.6.3"
+    "puppeteer": "^23.9.0"
   }
 }
