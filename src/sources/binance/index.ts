@@ -18,6 +18,10 @@ interface BinanceSimpleEarnResponse {
 
 interface BinanceSimpleEarnAccountResponse {
   totalAmountInUSDT: string;
+  totalFlexibleAmountInBTC: string;
+  totalFlexibleAmountInUSDT: string;
+  totalLockedInBTC: string;
+  totalLockedInUSDT: string;
 }
 
 /**
@@ -210,7 +214,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       //       asset.value;
       //   }
       // }
-      const earnAccountBalance = parseFloat((await this.getEarnBalance()).totalAmountInUSDT);
+      const earnAccountBalance = parseFloat((await this.getEarnBalance()).totalLockedInUSDT);
       assetsHash['Earn'] = {name: 'Earn', value: earnAccountBalance * UsdJpyRate};
     } catch (err) {
       console.error(err);

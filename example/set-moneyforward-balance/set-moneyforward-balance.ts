@@ -9,9 +9,9 @@ import {MoneyforwardCashAccount} from '../../src/target/moneyforward';
   const mf = new MoneyforwardCashAccount({debug: false});
   await mf.updateCryptoBalance('Binance', assets);
 
-  const client2 = new PaypaySource({});
-  const balance = await client2.fetch();
-  await mf.updatePayBalance('Paypay', balance);
+  // const client2 = new PaypaySource({});
+  // const balance = await client2.fetch();
+  // await mf.updatePayBalance('Paypay', balance);
 
   mf.finalize();
   console.log('Done!');
