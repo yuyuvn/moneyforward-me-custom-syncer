@@ -180,6 +180,7 @@ export class MoneyforwardCashAccount {
    */
   private async initiate() {
     const puppeteerOptions: PuppeteerLaunchOptions = {
+      headless: 'new',
       slowMo: 100,
       executablePath: process.env.CHRONIUM_BINARY_PATH,
       args: [
