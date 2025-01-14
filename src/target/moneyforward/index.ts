@@ -189,11 +189,13 @@ export class MoneyforwardCashAccount {
 
       await (await page.waitForSelector('.btn-asset-action'))?.click();
 
-      await (
+      const input = await (
         await page.waitForSelector('#portfolio_det_po #user_asset_det_value', {
           visible: true,
         })
-      )?.type(balance.toString());
+      ) as ElementHandle<Element>
+      await input.click({ clickCount: 3 })
+      await input.type(balance.toString());
       await (
         await page.waitForSelector(
           '#portfolio_det_po .controls > .btn-success.btn',
