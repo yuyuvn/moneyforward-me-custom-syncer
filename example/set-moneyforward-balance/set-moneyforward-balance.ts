@@ -6,12 +6,16 @@ import {MoneyforwardCashAccount} from '../../src/target/moneyforward';
   const client = new BinanceSource({});
   const assets = await client.fetchAll();
 
-  const mf = new MoneyforwardCashAccount({debug: false});
-  await mf.updateCryptoBalance('Binance', assets);
-
   const client2 = new PaypaySource({});
   const assets2 = await client2.fetchAll();
-  await mf.updateCryptoBalance('Paypay', assets2);
+
+  const mf = new MoneyforwardCashAccount({debug: true});
+  await mf.updateCryptoBalance('Binance', assets);
+  for (const asset of assets2) {
+    if (asset.name === 'PayPay Investment Points') {
+      await mf.updatePointsBalance('Paypay', asset.value);
+    }
+  }
 
   mf.finalize();
   console.log('Done!');

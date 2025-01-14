@@ -161,6 +161,54 @@ export class MoneyforwardCashAccount {
   }
 
   /**
+   * Update points balance for a manual account
+   *
+   * @param {string} account
+   * @param {numer} balance
+   * @memberof MoneyforwardCashAccount
+   */
+  public async updatePointsBalance(account: string, balance: number) {
+    if (!this.initiated) await this.initiate();
+    else {
+      this.page = await this.createNewPage();
+    }
+
+    const page = this.page!;
+
+    try {
+      await page.goto('https://moneyforward.com/accounts');
+      await (
+        (await page.waitForSelector(
+          `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
+        )) as ElementHandle<Element>
+      )?.click();
+
+      await page.waitForSelector(`xpath/.//h1[contains(., '${account}')]`, {
+        visible: true,
+      });
+
+      await (await page.waitForSelector('.btn-asset-action'))?.click();
+
+      await (
+        await page.waitForSelector('#portfolio_det_po #user_asset_det_value', {
+          visible: true,
+        })
+      )?.type(balance.toString());
+      await (
+        await page.waitForSelector(
+          '#portfolio_det_po .controls > .btn-success.btn',
+          {
+            visible: true,
+          }
+        )
+      )?.click();
+    } catch (error) {
+      await this.debug(error as Error);
+      throw error;
+    }
+  }
+
+  /**
    * Close chrome
    *
    * @return {*}
@@ -204,6 +252,24 @@ export class MoneyforwardCashAccount {
     });
     await this.login(this.page);
     this.initiated = true;
+  }
+
+  /**
+   * Create new page with same settings as main page
+   * 
+   * @private
+   * @returns {Promise<Page>}
+   * @memberof MoneyforwardCashAccount 
+   */
+  private async createNewPage(): Promise<Page> {
+    const page = await this.browser!.newPage();
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'
+    );
+    page.on('dialog', async (dialog: any) => {
+      await dialog.accept();
+    });
+    return page;
   }
 
   /**
