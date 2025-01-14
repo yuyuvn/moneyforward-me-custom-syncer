@@ -1,4 +1,5 @@
 import sys
+import os
 from PayPaython_mobile import PayPay
 
 paypay=PayPay(os.getenv('PAYPAY_PHONE'),os.getenv('PAYPAY_PASSWORD'),os.getenv('PAYPAY_DEVICE_UUID'),os.getenv('PAYPAY_CLIENT_UUID'))

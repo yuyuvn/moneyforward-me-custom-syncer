@@ -17,12 +17,14 @@ pip3 install -r requirements.txt
 ### Login
 New login:
 ```bash
-python3 src/sources/paypay/paypay_login.py >> .env
+python3 src/sources/paypay/paypay_login.py
 ```
+Then add output to .env and run `source .env`
 
 If already logged in and token is expired:
 ```bash
 python3 src/sources/paypay/paypay_extend.py >> .env
+source .env
 ```
 
 ### Run
