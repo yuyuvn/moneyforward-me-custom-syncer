@@ -57,8 +57,13 @@ jobs:
             libxtst6 \
             lsb-release \
             wget \
-            xdg-utils
-      # - run: sudo apt install -y chromium-browser chromium-codecs-ffmpeg
+            xdg-utils \
+      - run: sudo apt install -y chromium-browser chromium-codecs-ffmpeg
+      - name: install python
+        run: |
+          cd src/sources/paypay
+          python3 -m venv venv
+          venv/bin/pip3 install -r requirements.txt
       - name: sync
         env:
           BINANCE_API_KEY: '${{ secrets.BINANCE_API_KEY }}'
@@ -67,6 +72,9 @@ jobs:
           MONEYFORWARD_USER: '${{ secrets.MONEYFORWARD_USER }}'
           PAYPAY_ACCESS_TOKEN: '${{ secrets.PAYPAY_ACCESS_TOKEN }}'
           PAYPAY_REFRESH_TOKEN: '${{ secrets.PAYPAY_REFRESH_TOKEN }}'
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+          PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser'
         run: |
+          source src/sources/paypay/venv/bin/activate
           npm run compile
           node dist/example/set-moneyforward-balance/set-moneyforward-balance.js
