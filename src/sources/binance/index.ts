@@ -1,8 +1,6 @@
 import {SourceBase, Asset} from '../base';
 import Binance from 'node-binance-api';
 
-const CurrencyConverter = require('currency-converter-lt');
-
 interface BinanceSimpleEarnRowResponse {
   asset: string;
   amount: string;
@@ -50,7 +48,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
   async fetch(): Promise<number> {
     const balances = await this.binance.balance();
     const ticker = await this.binance.prices();
-    const currencyConverter = new CurrencyConverter({from: 'USD', to: 'JPY'});
+    const UsdJpyRate = parseFloat(ticker['BTCJPY']) / parseFloat(ticker['BTCUSDT']);
     let walletBalanceUSD = 0;
 
     for (let currency in balances) {
@@ -73,7 +71,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       }
     }
 
-    return await currencyConverter.convert(walletBalanceUSD);
+    return walletBalanceUSD * UsdJpyRate;
   }
 
   async getFlexibleSubscriptionRecord(): Promise<BinanceSimpleEarnResponse> {
@@ -138,8 +136,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
     try {
       const balances = await this.binance.balance();
       const ticker = await this.binance.prices();
-      const currencyConverter = new CurrencyConverter({from: 'USD', to: 'JPY'});
-      const UsdJpyRate: number = await currencyConverter.convert(1.0);
+      const UsdJpyRate = parseFloat(ticker['BTCJPY']) / parseFloat(ticker['BTCUSDT']);
       // const lockedSubscriptionRecord: BinanceSimpleEarnResponse =
       //   await this.getLockedSubscriptionRecord();
       // const flexibleSubscriptionRecord: BinanceSimpleEarnResponse =
