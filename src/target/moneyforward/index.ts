@@ -1,7 +1,7 @@
 import fs from 'fs';
 import {Asset} from '../../sources/base';
 import puppeteer, {
-  PuppeteerLaunchOptions,
+  LaunchOptions,
   Page,
   Browser,
   ElementHandle,
@@ -12,7 +12,7 @@ let debugCount = 0;
 interface MoneyforwardCashAccountConfig {
   email?: string;
   password?: string;
-  puppeteerOptions?: PuppeteerLaunchOptions;
+  puppeteerOptions?: LaunchOptions;
   debug?: boolean;
 }
 
@@ -229,7 +229,7 @@ export class MoneyforwardCashAccount {
    * @memberof MoneyforwardCashAccount
    */
   private async initiate() {
-    const puppeteerOptions: PuppeteerLaunchOptions = {
+    const puppeteerOptions: LaunchOptions = {
       headless: true,
       slowMo: 100,
       executablePath: process.env.CHRONIUM_BINARY_PATH,
