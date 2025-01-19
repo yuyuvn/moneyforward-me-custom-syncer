@@ -15,8 +15,10 @@
     "posttest": "npm run lint"
   },
   "dependencies": {
+    "@polymarket/clob-client": "^4.14.0",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
+    "ethers": "^5.7.1",
     "node-binance-api": "^0.13.1",
     "pkce-challenge": "^3.0",
     "puppeteer": "^24.0.0",
