@@ -74,6 +74,12 @@ jobs:
           PAYPAY_REFRESH_TOKEN: '${{ secrets.PAYPAY_REFRESH_TOKEN }}'
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
           PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser'
+          POLYGON_ADDRESS: '${{ secrets.POLYGON_ADDRESS }}'
+          POLYSCAN_API_KEY: '${{ secrets.POLYSCAN_API_KEY }}'
+          POLYMARKET_PRIVATE_KEY: '${{ secrets.POLYMARKET_PRIVATE_KEY }}'
+          POLYGON_PRIVATE_KEY: '${{ secrets.POLYGON_PRIVATE_KEY }}'
+          POLYMARKET_API_SECRET: '${{ secrets.POLYMARKET_API_SECRET }}'
+          POLYMARKET_API_PASSPHRASE: '${{ secrets.POLYMARKET_API_PASSPHRASE }}'
         run: |
           source src/sources/paypay/venv/bin/activate
           npm run compile
