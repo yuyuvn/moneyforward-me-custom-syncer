@@ -249,7 +249,6 @@ export class MoneyforwardCashAccount {
         '--no-zygote',
         '--disable-gpu',
       ],
-      timeout: 5000,
       ...this.config.puppeteerOptions,
     };
     this.browser = await puppeteer.launch(puppeteerOptions);
@@ -273,6 +272,9 @@ export class MoneyforwardCashAccount {
    */
   private async createNewPage(): Promise<Page> {
     const page = await this.browser!.newPage();
+    if (this.page) {
+      await this.page.close();
+    }
     this.page = page;
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'
@@ -369,5 +371,12 @@ export class MoneyforwardCashAccount {
       `${currentFolder}/debug_${debugCount}.png`
     );
     debugCount += 1;
+  }
+
+  public async closePage() {
+    if (this.page) {
+      await this.page.close();
+      this.page = undefined;
+    }
   }
 }
