@@ -4,33 +4,32 @@ import {PolymarketSource} from '../../src/sources/polymarket';
 import {MoneyforwardCashAccount} from '../../src/target/moneyforward';
 
 (async () => {
-  const client = new BinanceSource({});
-  const assets = await client.fetchAll();
+  const mf = new MoneyforwardCashAccount({debug: process.env.DEBUG === 'true'});
+
+  const binanceClient = new BinanceSource({});
+  const assets = await binanceClient.fetchAll();
+  await mf.updateCryptoBalance('Binance', assets);
+  await mf.closePage();
 
   const client2 = new PaypaySource({});
-  let assets2: {name: string, value: number}[] = [];
-  let skipPaypay = false;
   try {
-    assets2 = await client2.fetchAll();
-  } catch (error) {
-    console.error('Error fetching PayPay balance:', error);
-    skipPaypay = true;
-  }
+    const assets2 = await client2.fetchAll();
 
-  const JPYRate = await client.getUSDJPYRate();
-  const client3 = new PolymarketSource({JPYRate});
-  const assets3 = await client3.fetchAll();
-
-  const mf = new MoneyforwardCashAccount({debug: process.env.DEBUG === 'true'});
-  await mf.updateCryptoBalance('Binance', assets);
-  if (!skipPaypay) {
     for (const asset of assets2) {
       if (asset.name === 'PayPay Investment Points') {
         await mf.updatePointsBalance('Paypay Points', asset.value);
       }
     }
+  } catch (error) {
+    console.error('Error fetching PayPay balance:', error);
   }
+  await mf.closePage();
+
+  const JPYRate = await binanceClient.getUSDJPYRate();
+  const client3 = new PolymarketSource({JPYRate});
+  const assets3 = await client3.fetchAll();
   await mf.updateCryptoBalance('Polymarket', assets3);
+  await mf.closePage();
 
   mf.finalize();
   console.log('Done!');
