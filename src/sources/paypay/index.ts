@@ -49,7 +49,12 @@ export class PaypaySource extends SourceBase<PaypaySourceConfig> {
     let investmentPoints: number = 0;
     const { execSync } = require('child_process');
     try {
-      const output = execSync(`python3 ./src/sources/paypay/paypay.py "${this.config.accessToken}" "${this.config.refreshToken}"`).toString();
+      const {stdout, stderr} = execSync(`python3 ./src/sources/paypay/paypay.py "${this.config.accessToken}" "${this.config.refreshToken}"`, {encoding: 'utf8'});
+      if (stderr) {
+        throw new Error(`Python script error: ${stderr}`);
+      }
+      const output = stdout;
+      
       [allBalance, useableBalance, moneyLight, money, point, investmentPoints] = output.split('\n').map(Number);
     } catch (error) {
       console.error('Error executing Python script:', error);

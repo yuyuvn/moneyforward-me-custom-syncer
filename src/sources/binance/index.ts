@@ -131,12 +131,17 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
     })
   }
 
+  public async getUSDJPYRate(ticker?: {[index: string]: string}): Promise<number> {
+    ticker ||= await this.binance.prices();
+    return parseFloat(ticker!['BTCJPY']) / parseFloat(ticker!['BTCUSDT']);
+  }
+
   async fetchAll(): Promise<Asset[]> {
     const assetsHash: {[index: string]: Asset} = {};
     try {
       const balances = await this.binance.balance();
       const ticker = await this.binance.prices();
-      const UsdJpyRate = parseFloat(ticker['BTCJPY']) / parseFloat(ticker['BTCUSDT']);
+      const UsdJpyRate = await this.getUSDJPYRate(ticker);
       // const lockedSubscriptionRecord: BinanceSimpleEarnResponse =
       //   await this.getLockedSubscriptionRecord();
       // const flexibleSubscriptionRecord: BinanceSimpleEarnResponse =

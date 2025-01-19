@@ -2,7 +2,7 @@ name: Sync Binance to Moneyforward
 
 on:
   schedule:
-    - cron: '0 13,21 * * *' # 6:00 AM and 10:00 PM JST
+    - cron: '0 3,6,9,13,15 * * *' # 12:00, 15:00, 18:00, 22:00, 24:00 JST
   workflow_dispatch:
 
 concurrency:

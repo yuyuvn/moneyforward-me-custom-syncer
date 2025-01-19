@@ -48,15 +48,19 @@ export class MoneyforwardCashAccount {
   public async updateCryptoBalance(account: string, assets: Asset[]) {
     if (!this.initiated) await this.initiate();
 
-    const page = this.page!;
+    const page = await this.createNewPage();
 
     try {
+      if (account.startsWith('https://')) {
+        await page.goto(account);
+      } else {
       await page.goto('https://moneyforward.com/accounts');
-      await (
-        (await page.waitForSelector(
-          `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
-        )) as ElementHandle<Element>
-      )?.click();
+        await (
+          (await page.waitForSelector(
+            `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
+          )) as ElementHandle<Element>
+        )?.click();
+      }
 
       for (const asset of assets) {
         await page.waitForSelector("xpath/.//a[contains(., '手入力で資産を追加')]", {
@@ -73,6 +77,9 @@ export class MoneyforwardCashAccount {
               visible: true,
             })) as ElementHandle<Element>
           )?.click();
+          await page.waitForSelector('div.modal.in #user_asset_det_asset_subclass_id', {
+            visible: true
+          });
           await page.select(
             'div.modal.in #user_asset_det_asset_subclass_id',
             '66'
@@ -242,6 +249,7 @@ export class MoneyforwardCashAccount {
         '--no-zygote',
         '--disable-gpu',
       ],
+      timeout: 5000,
       ...this.config.puppeteerOptions,
     };
     this.browser = await puppeteer.launch(puppeteerOptions);
@@ -265,6 +273,7 @@ export class MoneyforwardCashAccount {
    */
   private async createNewPage(): Promise<Page> {
     const page = await this.browser!.newPage();
+    this.page = page;
     await page.setUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'
     );
