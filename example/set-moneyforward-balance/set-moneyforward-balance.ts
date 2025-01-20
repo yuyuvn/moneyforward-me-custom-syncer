@@ -11,19 +11,19 @@ import {MoneyforwardCashAccount} from '../../src/target/moneyforward';
   await mf.updateCryptoBalance('Binance', assets);
   await mf.closePage();
 
-  const client2 = new PaypaySource({});
-  try {
-    const assets2 = await client2.fetchAll();
+  // const client2 = new PaypaySource({});
+  // try {
+  //   const assets2 = await client2.fetchAll();
 
-    for (const asset of assets2) {
-      if (asset.name === 'PayPay Investment Points') {
-        await mf.updatePointsBalance('Paypay Points', asset.value);
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching PayPay balance:', error);
-  }
-  await mf.closePage();
+  //   for (const asset of assets2) {
+  //     if (asset.name === 'PayPay Investment Points') {
+  //       await mf.updatePointsBalance('Paypay Points', asset.value);
+  //     }
+  //   }
+  // } catch (error) {
+  //   console.error('Error fetching PayPay balance:', error);
+  // }
+  // await mf.closePage();
 
   const JPYRate = await binanceClient.getUSDJPYRate();
   const client3 = new PolymarketSource({JPYRate});
