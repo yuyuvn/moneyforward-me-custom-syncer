@@ -46,6 +46,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
   }
 
   async fetch(): Promise<number> {
+    await this.binance.useServerTime();
     const balances = await this.binance.balance();
     const ticker = await this.binance.prices();
     const UsdJpyRate = parseFloat(ticker['BTCJPY']) / parseFloat(ticker['BTCUSDT']);
@@ -137,6 +138,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
   }
 
   async fetchAll(): Promise<Asset[]> {
+    await this.binance.useServerTime();
     const assetsHash: {[index: string]: Asset} = {};
     try {
       const balances = await this.binance.balance();
