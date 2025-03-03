@@ -125,7 +125,16 @@ export class PolymarketSource extends SourceBase<PolymarketSourceConfig> {
       const market = markets[marketId];
 
       for (const [outcomeId, balance] of Object.entries(outcomes)) {
-        const abcBalance = Math.abs(balance);
+        let abcBalance = Math.abs(balance);
+        if ((outcomeId == "Yes" && outcomes["No"] != undefined)) {
+          abcBalance = abcBalance - Math.abs(outcomes["No"]);
+          outcomes["No"] = 0;
+          outcomes["Yes"] = 0;
+        } else if ((outcomeId == "No" && outcomes["Yes"] != undefined)) {
+          abcBalance = abcBalance - Math.abs(outcomes["Yes"]);
+          outcomes["Yes"] = 0;
+          outcomes["No"] = 0;
+        }
         if (abcBalance < 0.1) {
             continue;
         }
