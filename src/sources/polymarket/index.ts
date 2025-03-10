@@ -74,77 +74,81 @@ export class PolymarketSource extends SourceBase<PolymarketSourceConfig> {
   }
 
   async fetchPositionBalance(): Promise<number> {
-    const provider = ethers.getDefaultProvider('matic');
-    const signer = new ethers.Wallet(this.config.polymarketPrivateKey || '', provider);
-    const creds: ApiKeyCreds = {
-        key: this.config.polymarketApiKey || '',
-        secret: this.config.polymarketApiSecret || '',
-        passphrase: this.config.polymarketApiPassphrase || '',
-    };
+    return 0;
 
-    const clobClient = new ClobClient(POLYMARKET_HOST, CHAIN_ID, signer, creds);
-    const positions: { [maker_address: string]: { [outcome: string]: number } } = {};
-    const markets: { [maker_address: string]: {closed: boolean, tokens: {price: number, outcome: string}[]} } = {};
+    // const provider = ethers.getDefaultProvider('matic');
+    // const signer = new ethers.Wallet(this.config.polymarketPrivateKey || '', provider);
+    // const creds: ApiKeyCreds = {
+    //     key: this.config.polymarketApiKey || '',
+    //     secret: this.config.polymarketApiSecret || '',
+    //     passphrase: this.config.polymarketApiPassphrase || '',
+    // };
 
-    // Fetch user positions
-    const threeMonthsAgo = Math.floor(Date.now() / 1000) - (90 * 24 * 60 * 60);
-    const trades = await clobClient.getTrades({after: threeMonthsAgo.toString()});
-    for (const fill of trades) {
-        // if (fill.status != 'CONFIRMED') {
-        //     continue;
-        // }
+    // const clobClient = new ClobClient(POLYMARKET_HOST, CHAIN_ID, signer, creds);
+    // const positions: { [maker_address: string]: { [outcome: string]: number } } = {};
+    // const markets: { [maker_address: string]: {closed: boolean, tokens: {price: number, outcome: string}[]} } = {};
 
-        const { market, outcome, size, price, side } = fill;
+    // // Fetch user positions
+    // const sixMonthsAgo = Math.floor(Date.now() / 1000) - (180 * 24 * 60 * 60);
+    // const trades = await clobClient.getTrades({after: sixMonthsAgo.toString()});
+    // for (const fill of trades) {
+    //     if (fill.status != 'CONFIRMED') {
+    //         continue;
+    //     }
 
-        if (!markets[market]) {
-            try {
-                markets[market] = await clobClient.getMarket(market);
-            } catch (error) {
-                markets[market] = {
-                    closed: true,
-                    tokens: [],
-                };
-            }
-        }
-        if (markets[market].closed) {
-            continue;
-        }
+    //     const { market, outcome, size, price, side, trader_side } = fill;
 
-        const signedSize = side === "BUY" ? size : -size;
+    //     if (!markets[market]) {
+    //         try {
+    //             markets[market] = await clobClient.getMarket(market);
+    //         } catch (error) {
+    //             markets[market] = {
+    //                 closed: true,
+    //                 tokens: [],
+    //             };
+    //         }
+    //     }
+    //     if (markets[market].closed) {
+    //         continue;
+    //     }
 
-        if (!positions[market]) {
-            positions[market] = {};
-        }
+    //     const signedSize = (side === "BUY" ? 1 : -1) * (trader_side === "TAKER" ? 1 : -1) * parseFloat(size);
+
+    //     if (!positions[market]) {
+    //         positions[market] = {};
+    //     }
     
-        positions[market][outcome] = Number(positions[market][outcome] || 0) + Number(signedSize);
-    }
+    //     positions[market][outcome] = Number(positions[market][outcome] || 0) + Number(signedSize);
+    // }
 
-    // Fetch market prices and calculate total value
-    let totalValue = 0;
-    for (const [marketId, outcomes] of Object.entries(positions)) {
-      const market = markets[marketId];
+    // console.log('positions:', JSON.stringify(positions, null, 2));
 
-      for (const [outcomeId, balance] of Object.entries(outcomes)) {
-        let abcBalance = Math.abs(balance);
-        if ((outcomeId == "Yes" && outcomes["No"] != undefined)) {
-          abcBalance = abcBalance - Math.abs(outcomes["No"]);
-          outcomes["No"] = 0;
-          outcomes["Yes"] = 0;
-        } else if ((outcomeId == "No" && outcomes["Yes"] != undefined)) {
-          abcBalance = abcBalance - Math.abs(outcomes["Yes"]);
-          outcomes["Yes"] = 0;
-          outcomes["No"] = 0;
-        }
-        if (abcBalance < 0.1) {
-            continue;
-        }
-        const price = market.tokens.find(t => t.outcome === outcomeId)?.price || 0;
-        const value = abcBalance * price;
-        totalValue += value;
-      }
-    }
+    // // Fetch market prices and calculate total value
+    // let totalValue = 0;
+    // for (const [marketId, outcomes] of Object.entries(positions)) {
+    //   const market = markets[marketId];
 
-    return totalValue * this.config.JPYRate!;
+    //   for (const [outcomeId, balance] of Object.entries(outcomes)) {
+    //     let abcBalance = Math.abs(balance);
+    //     if ((outcomeId == "Yes" && outcomes["No"] != undefined)) {
+    //       abcBalance = Math.abs(abcBalance - Math.abs(outcomes["No"]));
+    //       outcomes["No"] = 0;
+    //       outcomes["Yes"] = 0;
+    //     } else if ((outcomeId == "No" && outcomes["Yes"] != undefined)) {
+    //       abcBalance = Math.abs(abcBalance - Math.abs(outcomes["Yes"]));
+    //       outcomes["Yes"] = 0;
+    //       outcomes["No"] = 0;
+    //     }
+    //     if (abcBalance < 0.1) {
+    //         continue;
+    //     }
+    //     const price = market.tokens.find(t => t.outcome === outcomeId)?.price || 0;
+    //     const value = abcBalance * price;
+    //     totalValue += value;
+    //   }
+    // }
+
+    // return totalValue * this.config.JPYRate!;
   }
 }
 
