@@ -22,7 +22,7 @@
     "node-binance-api": "^0.13.4",
     "pkce-challenge": "^4.1",
     "puppeteer": "^24.4.0",
-    "undici": "^7.4.0",
+    "undici": "^7.5.0",
     "uuid": "^11.1.0"
   }
 }
