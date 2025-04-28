@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@types/node": "^22.13.9",
+    "@types/node": "^22.15.3",
     "gts": "^6.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
