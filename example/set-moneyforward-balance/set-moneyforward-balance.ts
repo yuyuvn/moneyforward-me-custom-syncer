@@ -4,7 +4,14 @@ import {PolymarketSource} from '../../src/sources/polymarket';
 import {MoneyforwardCashAccount} from '../../src/target/moneyforward';
 
 (async () => {
-  const mf = new MoneyforwardCashAccount({debug: process.env.DEBUG === 'true'});
+  // Create MoneyForward instance
+  // It will use environment variables for authentication:
+  // - MONEYFORWARD_USER: Your MoneyForward email
+  // - MONEYFORWARD_PASSWORD: Your MoneyForward password
+  // - MONEYFORWARD_2FA_SECRET: (Optional) Your 2FA secret key for TOTP generation
+  const mf = new MoneyforwardCashAccount({
+    debug: process.env.DEBUG === 'true'
+  });
 
   const binanceClient = new BinanceSource({});
   const assets = await binanceClient.fetchAll();
