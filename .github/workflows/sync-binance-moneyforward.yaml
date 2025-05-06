@@ -64,6 +64,18 @@ jobs:
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
           PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium-browser'
+          BINANCE_API_KEY: '${{ secrets.BINANCE_API_KEY }}'
+          BINANCE_SECRET_KEY: '${{ secrets.BINANCE_SECRET_KEY }}'
+          MONEYFORWARD_2FA_SECRET: '${{ secrets.MONEYFORWARD_2FA_SECRET }}'
+          MONEYFORWARD_USER: '${{ secrets.MONEYFORWARD_USER }}'
+          MONEYFORWARD_PASSWORD: '${{ secrets.MONEYFORWARD_PASSWORD }}'
+          POLYGON_ADDRESS: '${{ secrets.POLYGON_ADDRESS }}'
+          POLYSCAN_API_KEY: '${{ secrets.POLYSCAN_API_KEY }}'
+          POLYMARKET_PRIVATE_KEY: '${{ secrets.POLYMARKET_PRIVATE_KEY }}'
+          POLYMARKET_API_KEY: '${{ secrets.POLYMARKET_API_KEY }}'
+          POLYMARKET_API_SECRET: '${{ secrets.POLYMARKET_API_SECRET }}'
+          POLYMARKET_API_PASSPHRASE: '${{ secrets.POLYMARKET_API_PASSPHRASE }}'
+          
         run: |
           npm run compile
           node dist/example/set-moneyforward-balance/set-moneyforward-balance.js
