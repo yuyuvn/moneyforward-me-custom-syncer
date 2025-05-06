@@ -1,3 +1,4 @@
+  
 import fs from 'fs';
 import {Asset} from '../../sources/base';
 import puppeteer, {
@@ -6,6 +7,7 @@ import puppeteer, {
   Browser,
   ElementHandle,
 } from 'puppeteer';
+import { authenticator } from 'otplib';
 
 let debugCount = 0;
 
@@ -14,6 +16,7 @@ interface MoneyforwardCashAccountConfig {
   password?: string;
   puppeteerOptions?: LaunchOptions;
   debug?: boolean;
+  twoFASecret?: string;
 }
 
 export class MoneyforwardCashAccount {
@@ -33,9 +36,25 @@ export class MoneyforwardCashAccount {
       password: process.env.MONEYFORWARD_PASSWORD,
       puppeteerOptions: {},
       debug: false,
+      twoFASecret: process.env.MONEYFORWARD_2FA_SECRET,
       ...config,
     };
     this.initiated = false;
+  }
+
+  /**
+   * Generate a TOTP code using the secret key
+   * 
+   * @private
+   * @return {string} The generated 2FA code
+   * @memberof MoneyforwardCashAccount
+   */
+  private generateTOTPCode(): string {
+    if (!this.config.twoFASecret) {
+      throw new Error('Two-factor authentication secret is required');
+    }
+    
+    return authenticator.generate(this.config.twoFASecret);
   }
 
   /**
@@ -320,12 +339,70 @@ export class MoneyforwardCashAccount {
           visible: true,
         })
       )?.click();
+      // Wait for the one-time passcode screen if it appears
+      try {
+        await page.waitForFunction(
+          () => document.body.textContent?.includes('One-time passcode'),
+          { timeout: 5000 }
+        );
+        
+        // Handle 2FA if required
+        await this.generateAndEnterOTP(page);
+      } catch (error) {
+        // One-time passcode screen didn't appear, continue with normal flow
+        // console.log('No one-time passcode required');
+        throw error;
+      }
       await page.waitForSelector('.right-nav', {
         visible: true,
       });
     } catch (error) {
       await this.debug(error as Error);
       throw error;
+    }
+  }
+
+  /**
+   * Generate and enter one-time passcode for two-factor authentication
+   * 
+   * @private
+   * @param {Page} page - The Puppeteer page instance
+   * @return {Promise<void>}
+   * @memberof MoneyforwardCashAccount
+   */
+  private async generateAndEnterOTP(page: Page): Promise<void> {
+    try {
+      // Check if we're on the OTP screen
+      const otpInput = await page.$('#otp_attempt');
+      if (!otpInput) {
+        console.log('Not on OTP screen');
+        return;
+      }
+
+      // Get the OTP code - either from the config or generate it
+      let otpCode: string;
+      if (this.config.twoFASecret) {
+        otpCode = this.generateTOTPCode();
+        console.log('Generated OTP code:', otpCode);
+      } else {
+        throw new Error('No two-factor authentication method provided (code or secret)');
+      }
+
+      // Wait for the OTP input to be visible
+      await page.waitForSelector('#otp_attempt', { visible: true });
+      
+      // Enter the OTP code
+      await page.type('#otp_attempt', otpCode);
+      
+      // Click the verify button
+      await page.click('#submitto');
+
+      await page.waitForSelector('.right-nav', {
+        visible: true,
+      });
+    } catch (error) {
+      await this.debug(error as Error);
+      throw new Error(`Failed to generate or enter OTP: ${error}`);
     }
   }
 
