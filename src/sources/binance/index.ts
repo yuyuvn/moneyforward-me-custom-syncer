@@ -47,9 +47,9 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
 
   async fetch(): Promise<number> {
     await this.binance.useServerTime();
-    const balances = await this.binance.balance();
+    const balances: Record<string, { available: string; onOrder: string }> = await this.binance.balance();
     const ticker = await this.binance.prices();
-    const UsdJpyRate = parseFloat(ticker['BTCJPY']) / parseFloat(ticker['BTCUSDT']);
+    const UsdJpyRate = ticker['BTCJPY'] / ticker['BTCUSDT'];
     let walletBalanceUSD = 0;
 
     for (let currency in balances) {
@@ -68,7 +68,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       if (currency.match(/USD/)) {
         walletBalanceUSD += available;
       } else {
-        walletBalanceUSD += parseFloat(ticker[`${currency}USDT`]) * available;
+        walletBalanceUSD += ticker[`${currency}USDT`] * available;
       }
     }
 
@@ -88,6 +88,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       this.binance.signedRequest(
         'https://api.binance.com/sapi/v1/simple-earn/flexible/history/subscriptionRecord',
         {},
+        'GET',
         // @ts-ignore
         callback
       );
@@ -107,6 +108,7 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
       this.binance.signedRequest(
         'https://api.binance.com/sapi/v1/simple-earn/locked/history/subscriptionRecord',
         {},
+        'GET',
         // @ts-ignore
         callback
       );
@@ -114,41 +116,26 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
   }
 
   async getEarnBalance(): Promise<BinanceSimpleEarnAccountResponse> {
-    return new Promise((resolve, reject) => {
-      // @ts-ignore
-      const callback = (error, response) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(response);
-        }
-      };
-      this.binance.signedRequest(
-        'https://api.binance.com/sapi/v1/simple-earn/account',
-        {},
-        // @ts-ignore
-        callback
-      );
-    })
+    return await this.binance.signedRequest(
+      'https://api.binance.com/sapi/v1/simple-earn/account',
+      {},
+      'GET'
+    );
   }
-
-  public async getUSDJPYRate(ticker?: {[index: string]: string}): Promise<number> {
+  
+  public async getUSDJPYRate(ticker?: {[index: string]: number;}): Promise<number> {
     ticker ||= await this.binance.prices();
-    return parseFloat(ticker!['BTCJPY']) / parseFloat(ticker!['BTCUSDT']);
+    return ticker!['BTCJPY'] / ticker!['BTCUSDT'];
   }
 
   async fetchAll(): Promise<Asset[]> {
     await this.binance.useServerTime();
     const assetsHash: {[index: string]: Asset} = {};
     try {
-      const balances = await this.binance.balance();
+      const balances: {[key: string]: {available: string, onOrder: string}} = await this.binance.balance();
       const ticker = await this.binance.prices();
       const UsdJpyRate = await this.getUSDJPYRate(ticker);
-      // const lockedSubscriptionRecord: BinanceSimpleEarnResponse =
-      //   await this.getLockedSubscriptionRecord();
-      // const flexibleSubscriptionRecord: BinanceSimpleEarnResponse =
-      //   await this.getFlexibleSubscriptionRecord();
-
+      
       for (let currency in balances) {
         const balance = balances[currency];
         const available =
@@ -169,55 +156,12 @@ export class BinanceSource extends SourceBase<BinanceSourceConfig> {
           asset.value = available * UsdJpyRate + asset.value;
         } else {
           asset.value =
-            parseFloat(ticker[`${currency}USDT`]) * available * UsdJpyRate +
+          ticker[`${currency}USDT`] * available * UsdJpyRate +
             asset.value;
         }
         assetsHash[currency] = asset;
       }
 
-      // for (const row of lockedSubscriptionRecord.rows) {
-      //   const currency = row.asset;
-      //   const available = parseFloat(row.amount);
-      //   const asset = assetsHash[currency] || {name: currency, value: 0.0};
-      //   if (row.status == 'FAILED' || row.type != 'NORMAL') {
-      //     continue;
-      //   }
-      //   if (currency.match(/JPY/)) {
-      //     asset.value = available + asset.value;
-      //   } else if (currency.match(/USD/)) {
-      //     asset.value = available * UsdJpyRate + asset.value;
-      //   } else {
-      //     if (currency == 'SOL') {
-      //       console.log(
-      //         parseFloat(ticker[`${currency}USDT`]),
-      //         available,
-      //         UsdJpyRate,
-      //         asset.value
-      //       );
-      //     }
-      //     asset.value =
-      //       parseFloat(ticker[`${currency}USDT`]) * available * UsdJpyRate +
-      //       asset.value;
-      //   }
-      // }
-
-      // for (const row of flexibleSubscriptionRecord.rows) {
-      //   const currency = row.asset;
-      //   const available = parseFloat(row.amount);
-      //   const asset = assetsHash[currency] || {name: currency, value: 0.0};
-      //   if (row.status == 'FAILED' || row.type != 'NORMAL') {
-      //     continue;
-      //   }
-      //   if (currency.match(/JPY/)) {
-      //     asset.value = available + asset.value;
-      //   } else if (currency.match(/USD/)) {
-      //     asset.value = available * UsdJpyRate + asset.value;
-      //   } else {
-      //     asset.value =
-      //       parseFloat(ticker[`${currency}USDT`]) * available * UsdJpyRate +
-      //       asset.value;
-      //   }
-      // }
       const earnAccountBalance = parseFloat((await this.getEarnBalance()).totalLockedInUSDT);
       assetsHash['Earn'] = {name: 'Earn', value: earnAccountBalance * UsdJpyRate};
     } catch (err) {
