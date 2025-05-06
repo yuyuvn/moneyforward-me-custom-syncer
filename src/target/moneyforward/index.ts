@@ -383,7 +383,9 @@ export class MoneyforwardCashAccount {
       let otpCode: string;
       if (this.config.twoFASecret) {
         otpCode = this.generateTOTPCode();
-        console.log('Generated OTP code:', otpCode);
+        if (this.config.debug) {
+          console.log('Generated OTP code:', otpCode);
+        }
       } else {
         throw new Error('No two-factor authentication method provided (code or secret)');
       }
