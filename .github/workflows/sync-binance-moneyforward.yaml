@@ -59,7 +59,9 @@ jobs:
             lsb-release \
             wget \
             xdg-utils \
-      - run: sudo apt install -y chromium-browser chromium-codecs-ffmpeg
+      - run: |
+          sudo apt install -y chromium-browser chromium-codecs-ffmpeg
+          snap install chromium
       - name: sync
         env:
           PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
