@@ -63,13 +63,16 @@ export class PolymarketSource extends SourceBase<PolymarketSourceConfig> {
   }
 
   async fetchCash(): Promise<number> {
-    const response = await fetch(`https://api.polygonscan.com/api?module=account&action=tokenbalance&contractaddress=${this.tokenAddress}&address=${this.config.polygonAddress}&tag=latest&apikey=${this.config.polyscanApiKey}`);
+    // Use Etherscan V2 API for multichain support (Polygon chainId: 137)
+    const url = `https://api.etherscan.io/v2/api?chainid=137&module=account&action=tokenbalance&contractaddress=${this.tokenAddress}&address=${this.config.polygonAddress}&tag=latest&apikey=${this.config.polyscanApiKey}`;
+    const response = await fetch(url);
     const data = await response.json();
 
-    if (data.status == 1) {
-        return parseFloat(data.result) / 10 ** 6 * this.config.JPYRate!;
+    // Etherscan V2 returns balances as strings, decimals depend on token (USDC: 6)
+    if (data.status === "1" && data.result) {
+      return parseFloat(data.result) / 10 ** 6 * this.config.JPYRate!;
     } else {
-        throw new Error(data);
+      throw new Error(data.message || "Failed to fetch token balance");
     }
   }
 

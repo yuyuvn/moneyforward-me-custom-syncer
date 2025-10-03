@@ -22,6 +22,9 @@ coverage
 # API keys and secrets
 .env
 
+# Python virtual environment
+venv
+
 # Dependency directory
 node_modules
 bower_components
