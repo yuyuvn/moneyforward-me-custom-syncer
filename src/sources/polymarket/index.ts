@@ -14,10 +14,6 @@ let debugCount = 0;
 export interface PolymarketSourceConfig {
   polygonAddress?: string;
   polyscanApiKey?: string;
-  polymarketPrivateKey?: string;
-  polymarketApiKey?: string;
-  polymarketApiSecret?: string;
-  polymarketApiPassphrase?: string;
   JPYRate?: number;
 }
 
@@ -30,10 +26,6 @@ export class PolymarketSource extends SourceBase<PolymarketSourceConfig> {
     this.config = {
         polygonAddress: process.env.POLYGON_ADDRESS,
         polyscanApiKey: process.env.POLYSCAN_API_KEY,
-        polymarketPrivateKey: process.env.POLYMARKET_PRIVATE_KEY,
-        polymarketApiKey: process.env.POLYMARKET_API_KEY,
-        polymarketApiSecret: process.env.POLYMARKET_API_SECRET,
-        polymarketApiPassphrase: process.env.POLYMARKET_API_PASSPHRASE,
         JPYRate: 150,
         ...config,
       };
@@ -77,81 +69,22 @@ export class PolymarketSource extends SourceBase<PolymarketSourceConfig> {
   }
 
   async fetchPositionBalance(): Promise<number> {
-    return 0;
+    const url = `https://data-api.polymarket.com/value?user=${this.config.polygonAddress}`;
+    const response = await fetch(url);
+    const json = await response.json();
 
-    // const provider = ethers.getDefaultProvider('matic');
-    // const signer = new ethers.Wallet(this.config.polymarketPrivateKey || '', provider);
-    // const creds: ApiKeyCreds = {
-    //     key: this.config.polymarketApiKey || '',
-    //     secret: this.config.polymarketApiSecret || '',
-    //     passphrase: this.config.polymarketApiPassphrase || '',
-    // };
+    // Expected shape: [{ user: string, value: number }]
+    if (
+      Array.isArray(json) &&
+      json.length > 0 &&
+      json[0] &&
+      typeof json[0].value === "number"
+    ) {
+      const usdValue = json[0].value;
+      return usdValue * this.config.JPYRate!;
+    }
 
-    // const clobClient = new ClobClient(POLYMARKET_HOST, CHAIN_ID, signer, creds);
-    // const positions: { [maker_address: string]: { [outcome: string]: number } } = {};
-    // const markets: { [maker_address: string]: {closed: boolean, tokens: {price: number, outcome: string}[]} } = {};
-
-    // // Fetch user positions
-    // const sixMonthsAgo = Math.floor(Date.now() / 1000) - (180 * 24 * 60 * 60);
-    // const trades = await clobClient.getTrades({after: sixMonthsAgo.toString()});
-    // for (const fill of trades) {
-    //     if (fill.status != 'CONFIRMED') {
-    //         continue;
-    //     }
-
-    //     const { market, outcome, size, price, side, trader_side } = fill;
-
-    //     if (!markets[market]) {
-    //         try {
-    //             markets[market] = await clobClient.getMarket(market);
-    //         } catch (error) {
-    //             markets[market] = {
-    //                 closed: true,
-    //                 tokens: [],
-    //             };
-    //         }
-    //     }
-    //     if (markets[market].closed) {
-    //         continue;
-    //     }
-
-    //     const signedSize = (side === "BUY" ? 1 : -1) * (trader_side === "TAKER" ? 1 : -1) * parseFloat(size);
-
-    //     if (!positions[market]) {
-    //         positions[market] = {};
-    //     }
-    
-    //     positions[market][outcome] = Number(positions[market][outcome] || 0) + Number(signedSize);
-    // }
-
-    // console.log('positions:', JSON.stringify(positions, null, 2));
-
-    // // Fetch market prices and calculate total value
-    // let totalValue = 0;
-    // for (const [marketId, outcomes] of Object.entries(positions)) {
-    //   const market = markets[marketId];
-
-    //   for (const [outcomeId, balance] of Object.entries(outcomes)) {
-    //     let abcBalance = Math.abs(balance);
-    //     if ((outcomeId == "Yes" && outcomes["No"] != undefined)) {
-    //       abcBalance = Math.abs(abcBalance - Math.abs(outcomes["No"]));
-    //       outcomes["No"] = 0;
-    //       outcomes["Yes"] = 0;
-    //     } else if ((outcomeId == "No" && outcomes["Yes"] != undefined)) {
-    //       abcBalance = Math.abs(abcBalance - Math.abs(outcomes["Yes"]));
-    //       outcomes["Yes"] = 0;
-    //       outcomes["No"] = 0;
-    //     }
-    //     if (abcBalance < 0.1) {
-    //         continue;
-    //     }
-    //     const price = market.tokens.find(t => t.outcome === outcomeId)?.price || 0;
-    //     const value = abcBalance * price;
-    //     totalValue += value;
-    //   }
-    // }
-
-    // return totalValue * this.config.JPYRate!;
+    throw new Error("Failed to fetch Polymarket position value");
   }
 }
 
