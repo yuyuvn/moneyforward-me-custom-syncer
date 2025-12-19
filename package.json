@@ -15,7 +15,7 @@
     "posttest": "npm run lint"
   },
   "dependencies": {
-    "@polymarket/clob-client": "^4.22.7",
+    "@polymarket/clob-client": "^5.1.1",
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
     "ethers": "^5.8.0",
