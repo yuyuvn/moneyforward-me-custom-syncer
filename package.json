@@ -23,7 +23,7 @@
     "otplib": "^12.0.1",
     "pkce-challenge": "^4.1",
     "puppeteer": "^24.34.0",
-    "undici": "^7.16.0",
+    "undici": "^7.18.2",
     "uuid": "^13.0.0"
   }
 }
