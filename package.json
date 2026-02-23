@@ -21,7 +21,7 @@
     "ethers": "^5.8.0",
     "node-binance-api": "^1.0.20",
     "otplib": "^13.1.0",
-    "pkce-challenge": "^4.1",
+    "pkce-challenge": "^6.0",
     "puppeteer": "^24.34.0",
     "undici": "^7.18.2",
     "uuid": "^13.0.0"
