@@ -7,7 +7,7 @@ import puppeteer, {
   Browser,
   ElementHandle,
 } from 'puppeteer';
-import { authenticator } from 'otplib';
+import { generateSync } from 'otplib';
 
 let debugCount = 0;
 
@@ -54,7 +54,7 @@ export class MoneyforwardCashAccount {
       throw new Error('Two-factor authentication secret is required');
     }
     
-    return authenticator.generate(this.config.twoFASecret);
+    return generateSync({ secret: this.config.twoFASecret });
   }
 
   /**
