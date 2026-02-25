@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import pkce from 'pkce-challenge';
 import * as cheerio from 'cheerio';
 
 class PayPayError extends Error {}
