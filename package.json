@@ -22,7 +22,7 @@
     "node-binance-api": "^1.0.20",
     "otplib": "^13.3.0",
     "puppeteer": "^24.37.5",
-    "undici": "^7.18.2",
+    "undici": "^7.22.0",
     "uuid": "^13.0.0"
   }
 }
