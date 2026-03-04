@@ -17,7 +17,7 @@
   "dependencies": {
     "@polymarket/clob-client": "^5.2.4",
     "axios": "^1.13.6",
-    "cheerio": "^1.1.2",
+    "cheerio": "^1.2.0",
     "ethers": "^5.8.0",
     "node-binance-api": "^1.0.20",
     "otplib": "^13.3.0",
