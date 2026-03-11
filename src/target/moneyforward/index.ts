@@ -126,6 +126,12 @@ export class MoneyforwardCashAccount {
             )
           )?.type(Math.round(asset.bought).toString());
         }
+        const jstDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+        const dateStr = `${jstDate.getFullYear()}/${String(jstDate.getMonth() + 1).padStart(2, '0')}/${String(jstDate.getDate()).padStart(2, '0')}`;
+        await page.evaluate((selector, value) => {
+          const el = document.querySelector(selector) as HTMLInputElement;
+          if (el) el.value = value;
+        }, 'div.modal.in #user_asset_det_entried_at', dateStr);
         await (
           await page.waitForSelector(
             'div.modal.in input[value="この内容で登録する"]',
