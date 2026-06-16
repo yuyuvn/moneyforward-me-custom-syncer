@@ -226,7 +226,7 @@ export class MoneyforwardCashAccount {
           visible: true,
         })
       ) as ElementHandle<Element>
-      await input.click({ clickCount: 3 })
+      await input.click({count: 3});
       await input.type(balance.toString());
       await (
         await page.waitForSelector(
