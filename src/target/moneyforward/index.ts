@@ -1,12 +1,14 @@
-  
+
 import fs from 'fs';
 import {Asset} from '../../sources/base';
-import puppeteer, {
+import {
+  chromium,
   LaunchOptions,
   Page,
   Browser,
   ElementHandle,
-} from 'puppeteer';
+  BrowserContext,
+} from 'playwright';
 import { generateSync } from 'otplib';
 
 let debugCount = 0;
@@ -14,7 +16,7 @@ let debugCount = 0;
 interface MoneyforwardCashAccountConfig {
   email?: string;
   password?: string;
-  puppeteerOptions?: LaunchOptions;
+  playwrightOptions?: LaunchOptions;
   debug?: boolean;
   twoFASecret?: string;
 }
@@ -23,6 +25,7 @@ export class MoneyforwardCashAccount {
   private config: MoneyforwardCashAccountConfig;
   private initiated: boolean;
   private browser?: Browser;
+  private context?: BrowserContext;
   private page?: Page;
 
   /**
@@ -34,7 +37,7 @@ export class MoneyforwardCashAccount {
     this.config = {
       email: process.env.MONEYFORWARD_USER,
       password: process.env.MONEYFORWARD_PASSWORD,
-      puppeteerOptions: {},
+      playwrightOptions: {},
       debug: false,
       twoFASecret: process.env.MONEYFORWARD_2FA_SECRET,
       ...config,
@@ -44,7 +47,7 @@ export class MoneyforwardCashAccount {
 
   /**
    * Generate a TOTP code using the secret key
-   * 
+   *
    * @private
    * @return {string} The generated 2FA code
    * @memberof MoneyforwardCashAccount
@@ -53,7 +56,7 @@ export class MoneyforwardCashAccount {
     if (!this.config.twoFASecret) {
       throw new Error('Two-factor authentication secret is required');
     }
-    
+
     return generateSync({ secret: this.config.twoFASecret });
   }
 
@@ -76,67 +79,59 @@ export class MoneyforwardCashAccount {
       await page.goto('https://moneyforward.com/accounts');
         await (
           (await page.waitForSelector(
-            `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
+            `xpath=.//section[@class='manual_accounts']//a[contains(., '${account}')]`
           )) as ElementHandle<Element>
         )?.click();
       }
 
       for (const asset of assets) {
-        await page.waitForSelector("xpath/.//a[contains(., '手入力で資産を追加')]", {
-          visible: true,
+        await page.waitForSelector("xpath=.//a[contains(., '手入力で資産を追加')]", {
+          state: 'visible',
         });
         const [row] = await page.$$(
-          `xpath/.//table[@id="TABLE_1"]//tr[contains(., "${asset.name}")]`
+          `xpath=.//table[@id="TABLE_1"]//tr[contains(., "${asset.name}")]`
         );
         if (row) {
           await (await row.waitForSelector('.btn-asset-action'))?.click();
         } else {
           await (
-            (await page.waitForSelector("xpath/.//a[contains(., '手入力で資産を追加')]", {
-              visible: true,
+            (await page.waitForSelector("xpath=.//a[contains(., '手入力で資産を追加')]", {
+              state: 'visible',
             })) as ElementHandle<Element>
           )?.click();
           await page.waitForSelector('div.modal.in #user_asset_det_asset_subclass_id', {
-            visible: true
+            state: 'visible'
           });
-          await page.select(
+          await page.selectOption(
             'div.modal.in #user_asset_det_asset_subclass_id',
             '66'
           ); // 暗号資産
-          await page.type('div.modal.in #user_asset_det_name', asset.name);
+          await page.fill('div.modal.in #user_asset_det_name', asset.name);
         }
         await page.waitForSelector('div.modal.in #user_asset_det_value', {
-          visible: true,
+          state: 'visible',
         });
-        await page.evaluate(selector => {
-          (document.querySelector(selector) as HTMLInputElement).value = '';
-        }, 'div.modal.in input[name="user_asset_det[value]"]');
-        await (
-          await page.waitForSelector('div.modal.in #user_asset_det_value', {
-            visible: true,
-          })
-        )?.type(Math.round(asset.value).toString());
+        await page.fill(
+          'div.modal.in #user_asset_det_value',
+          Math.round(asset.value).toString()
+        );
         if (asset.bought) {
-          await (
-            await page.waitForSelector(
-              'div.modal.in #user_asset_det_entried_price',
-              {
-                visible: true,
-              }
-            )
-          )?.type(Math.round(asset.bought).toString());
+          await page.fill(
+            'div.modal.in #user_asset_det_entried_price',
+            Math.round(asset.bought).toString()
+          );
         }
         const jstDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
         const dateStr = `${jstDate.getFullYear()}/${String(jstDate.getMonth() + 1).padStart(2, '0')}/${String(jstDate.getDate()).padStart(2, '0')}`;
-        await page.evaluate((selector, value) => {
+        await page.evaluate(({ selector, value }) => {
           const el = document.querySelector(selector) as HTMLInputElement;
           if (el) el.value = value;
-        }, 'div.modal.in #user_asset_det_entried_at', dateStr);
+        }, { selector: 'div.modal.in #user_asset_det_entried_at', value: dateStr });
         await (
           await page.waitForSelector(
             'div.modal.in input[value="この内容で登録する"]',
             {
-              visible: true,
+              state: 'visible',
             }
           )
         )?.click();
@@ -163,26 +158,22 @@ export class MoneyforwardCashAccount {
       await page.goto('https://moneyforward.com/accounts');
       await (
         (await page.waitForSelector(
-          `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
+          `xpath=.//section[@class='manual_accounts']//a[contains(., '${account}')]`
         )) as ElementHandle<Element>
       )?.click();
 
-      await page.waitForSelector("xpath/.//h1[contains(., '残高推移')]", {
-        visible: true,
+      await page.waitForSelector("xpath=.//h1[contains(., '残高推移')]", {
+        state: 'visible',
       });
 
       await (await page.waitForSelector('.heading-small > .btn-success.btn'))?.click();
 
-      await (
-        await page.waitForSelector('#rollover_info_value', {
-          visible: true,
-        })
-      )?.type(balance.toString());
+      await page.fill('#rollover_info_value', balance.toString());
       await (
         await page.waitForSelector(
           '.controls > .btn-success.btn',
           {
-            visible: true,
+            state: 'visible',
           }
         )
       )?.click();
@@ -211,28 +202,26 @@ export class MoneyforwardCashAccount {
       await page.goto('https://moneyforward.com/accounts');
       await (
         (await page.waitForSelector(
-          `xpath/.//section[@class='manual_accounts']//a[contains(., '${account}')]`
+          `xpath=.//section[@class='manual_accounts']//a[contains(., '${account}')]`
         )) as ElementHandle<Element>
       )?.click();
 
-      await page.waitForSelector(`xpath/.//h1[contains(., '${account}')]`, {
-        visible: true,
+      await page.waitForSelector(`xpath=.//h1[contains(., '${account}')]`, {
+        state: 'visible',
       });
 
       await (await page.waitForSelector('.btn-asset-action'))?.click();
 
-      const input = await (
-        await page.waitForSelector('#portfolio_det_po #user_asset_det_value', {
-          visible: true,
-        })
-      ) as ElementHandle<Element>
-      await input.click({count: 3});
-      await input.type(balance.toString());
+      const input = (await page.waitForSelector(
+        '#portfolio_det_po #user_asset_det_value',
+        { state: 'visible' }
+      )) as ElementHandle<Element>;
+      await input.fill(balance.toString());
       await (
         await page.waitForSelector(
           '#portfolio_det_po .controls > .btn-success.btn',
           {
-            visible: true,
+            state: 'visible',
           }
         )
       )?.click();
@@ -261,7 +250,7 @@ export class MoneyforwardCashAccount {
    * @memberof MoneyforwardCashAccount
    */
   private async initiate() {
-    const puppeteerOptions: LaunchOptions = {
+    const launchOptions: LaunchOptions = {
       headless: true,
       slowMo: 100,
       executablePath: process.env.CHRONIUM_BINARY_PATH,
@@ -274,14 +263,15 @@ export class MoneyforwardCashAccount {
         '--no-zygote',
         '--disable-gpu',
       ],
-      ...this.config.puppeteerOptions,
+      ...this.config.playwrightOptions,
     };
-    this.browser = await puppeteer.launch(puppeteerOptions);
-    this.page = await this.browser.newPage();
-    await this.page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'
-    );
-    this.page.on('dialog', async (dialog: any) => {
+    this.browser = await chromium.launch(launchOptions);
+    this.context = await this.browser.newContext({
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0',
+    });
+    this.page = await this.context.newPage();
+    this.page.on('dialog', async (dialog) => {
       await dialog.accept();
     });
     await this.login(this.page);
@@ -290,21 +280,18 @@ export class MoneyforwardCashAccount {
 
   /**
    * Create new page with same settings as main page
-   * 
+   *
    * @private
    * @returns {Promise<Page>}
-   * @memberof MoneyforwardCashAccount 
+   * @memberof MoneyforwardCashAccount
    */
   private async createNewPage(): Promise<Page> {
-    const page = await this.browser!.newPage();
+    const page = await this.context!.newPage();
     if (this.page) {
       await this.page.close();
     }
     this.page = page;
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:70.0) Gecko/20100101 Firefox/70.0'
-    );
-    page.on('dialog', async (dialog: any) => {
+    page.on('dialog', async (dialog) => {
       await dialog.accept();
     });
     return page;
@@ -322,45 +309,40 @@ export class MoneyforwardCashAccount {
       await page.goto('https://moneyforward.com/login');
       await (
         await page.waitForSelector('a.link-btn-reg', {
-          visible: true,
+          state: 'visible',
         })
       )?.click();
       await (
         await page.waitForSelector('[id="mfid_user[email]"]', {
-          visible: true,
+          state: 'visible',
         })
-      )?.type(this.config.email!);
+      )?.fill(this.config.email!);
       await (
         await page.waitForSelector('#submitto', {
-          visible: true,
+          state: 'visible',
         })
       )?.click();
       await (
         await page.waitForSelector('[id="mfid_user[password]"]', {
-          visible: true,
+          state: 'visible',
         })
-      )?.type(this.config.password!);
+      )?.fill(this.config.password!);
       await (
         await page.waitForSelector('#submitto', {
-          visible: true,
+          state: 'visible',
         })
       )?.click();
-      // Wait for the one-time passcode screen if it appears
-      try {
-        await page.waitForFunction(
-          () => document.body.textContent?.includes('One-time passcode'),
-          { timeout: 5000 }
-        );
-        
+      // Wait for either the OTP screen or a successful login
+      await page.waitForSelector('#otp_attempt, .right-nav', {
+        state: 'visible',
+      });
+
+      if (await page.$('#otp_attempt')) {
         // Handle 2FA if required
         await this.generateAndEnterOTP(page);
-      } catch (error) {
-        // One-time passcode screen didn't appear, continue with normal flow
-        // console.log('No one-time passcode required');
-        throw error;
       }
       await page.waitForSelector('.right-nav', {
-        visible: true,
+        state: 'visible',
       });
     } catch (error) {
       await this.debug(error as Error);
@@ -370,9 +352,9 @@ export class MoneyforwardCashAccount {
 
   /**
    * Generate and enter one-time passcode for two-factor authentication
-   * 
+   *
    * @private
-   * @param {Page} page - The Puppeteer page instance
+   * @param {Page} page - The Playwright page instance
    * @return {Promise<void>}
    * @memberof MoneyforwardCashAccount
    */
@@ -397,16 +379,16 @@ export class MoneyforwardCashAccount {
       }
 
       // Wait for the OTP input to be visible
-      await page.waitForSelector('#otp_attempt', { visible: true });
-      
+      await page.waitForSelector('#otp_attempt', { state: 'visible' });
+
       // Enter the OTP code
-      await page.type('#otp_attempt', otpCode);
-      
+      await page.fill('#otp_attempt', otpCode);
+
       // Click the verify button
       await page.click('#submitto');
 
       await page.waitForSelector('.right-nav', {
-        visible: true,
+        state: 'visible',
       });
     } catch (error) {
       await this.debug(error as Error);
