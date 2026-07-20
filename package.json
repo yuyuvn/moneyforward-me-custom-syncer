@@ -22,7 +22,7 @@
     "node-binance-api": "^1.0.32",
     "otplib": "^13.4.1",
     "playwright": "^1.61.1",
-    "undici": "^8.7.0",
+    "undici": "^8.8.0",
     "uuid": "^14.0.1"
   }
 }
