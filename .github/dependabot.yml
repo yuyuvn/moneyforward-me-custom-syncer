@@ -12,3 +12,10 @@ updates:
     # Only propose versions that have been published for at least 14 days
     cooldown:
       default-days: 14
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 14
