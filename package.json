@@ -20,7 +20,7 @@
     "cheerio": "^1.2.0",
     "ethers": "^5.8.0",
     "node-binance-api": "^1.0.33",
-    "otplib": "^13.4.1",
+    "otplib": "^13.5.0",
     "playwright": "^1.65.0",
     "undici": "^8.12.4",
     "uuid": "^14.0.1"
