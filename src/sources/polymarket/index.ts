@@ -69,22 +69,30 @@ export class PolymarketSource extends SourceBase<PolymarketSourceConfig> {
   }
 
   async fetchPositionBalance(): Promise<number> {
-    const url = `https://data-api.polymarket.com/value?user=${this.config.polygonAddress}`;
+    const url = `https://data-api.polymarket.com/v2/value?user=${this.config.polygonAddress}`;
     const response = await fetch(url);
-    const json = await response.json();
-
-    // Expected shape: [{ user: string, value: number }]
-    if (
-      Array.isArray(json) &&
-      json.length > 0 &&
-      json[0] &&
-      typeof json[0].value === "number"
-    ) {
-      const usdValue = json[0].value;
-      return usdValue * this.config.JPYRate!;
+    const text = await response.text();
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = undefined;
     }
 
-    throw new Error("Failed to fetch Polymarket position value");
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch Polymarket position value: HTTP ${response.status} ${text.slice(0, 200)}`
+      );
+    }
+
+    // Expected shape: { data: { proxy_wallet: string, value: number } }
+    if (json && json.data && typeof json.data.value === "number") {
+      return json.data.value * this.config.JPYRate!;
+    }
+
+    throw new Error(
+      `Failed to fetch Polymarket position value: unexpected response ${text.slice(0, 200)}`
+    );
   }
 }
 
